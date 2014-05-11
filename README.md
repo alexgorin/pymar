@@ -1,14 +1,32 @@
+
+Pymar
+=====
+
 Pymar is a tool for fast and easy creation of distributed map-reduce systems in Python.
 
 Its primary goals are to create very easy way to distribute your calculations in Python and
-to separate logic of your distributed programs from the way they store their data for as far as possible.
+to separate logic of your distributed programs from the way they store their data as far as possible.
 
+Version:
+-------
+0.1
+
+Requirements:
+-------------
+* Python 2.7
+* Working AMQP-server (for example, RabbitMQ)
+* pika
+* sqlalchemy
+* driver for whatever database you use (for example, psycopg for PostgreSQL). If you are not going to use databases or you are using SQLite, no driver is required.
+
+Using
+----
 As a Quick Start Guide see examples.py. Everything is explained in details.
 
 For example, you need calculate integral of given function on given interval.
-File: this_example.py
 
 ```python
+#this_example.py
 from pymar.datasource import DataSource, DataSourceFactory
 from pymar.producer import Producer
 
@@ -18,7 +36,7 @@ def func(x):
     return exp(x)
 
 class IntegrationProducer(Producer):
-    """"Producer for the task of integration of function
+    """"Producer for the task of integration of function.
     For this particular task the keys are not really needed, but you still need to process them.
     """
     WORKERS_NUMBER = 4
@@ -33,7 +51,6 @@ class IntegrationProducer(Producer):
     def reduce_fn(data_source):
         reduced_value = sum(val for _, val in data_source)
         return 0, reduced_value
-
 
 class IntegrationDataSource(DataSource):
     """"Data source for the task of integration of function
@@ -61,16 +78,16 @@ producer = IntegrationProducer()
 factory = DataSourceFactory(data_source_class=IntegrationDataSource)
 value = producer.map(factory)
 print "Answer: ", value[0]
-'''
+```
 
 Run workers using command like:
+```
 worker.py -f ./this_example.py -s IntegrationDataSource -p IntegrationProducer -q 127.0.0.1 -w 4
+```
 
 And run your script.
+```
 python this_example.py
+```
 
 Thus, there is only trivial code without much knowing about distribution.
-
-Requirements:
-Python 2.7
-Working AMQP-server (for example, RabbitMQ)
