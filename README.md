@@ -3,11 +3,12 @@ Pymar is a tool for fast and easy creation of distributed map-reduce systems in 
 Its primary goals are to create very easy way to distribute your calculations in Python and
 to separate logic of your distributed programs from the way they store their data for as far as possible.
 
-As a Quick Start guide see examples.py. Everything is explained in details.
+As a Quick Start Guide see examples.py. Everything is explained in details.
 
 For example, you need calculate integral of given function on given interval.
+File: this_example.py
 
-#this_example.py
+```python
 from pymar.datasource import DataSource, DataSourceFactory
 from pymar.producer import Producer
 
@@ -60,6 +61,7 @@ producer = IntegrationProducer()
 factory = DataSourceFactory(data_source_class=IntegrationDataSource)
 value = producer.map(factory)
 print "Answer: ", value[0]
+'''
 
 Run workers using command like:
 worker.py -f ./this_example.py -s IntegrationDataSource -p IntegrationProducer -q 127.0.0.1 -w 4
