@@ -41,14 +41,15 @@ class Worker(object):
             data_source_factory = pickle.loads(body)
         except Exception as e:
             self.logging.critical("Cannot read data from the message.")
-            self.logging.debug(e)
+            self.logging.critical(e)
             return
 
         try:
             data_source = data_source_factory.build_data_source()
         except Exception as e:
-            self.logging.info("Cannot create data source: ")
-            self.logging.info(e)
+            self.logging.critical("Cannot create data source: ")
+            self.logging.critical(e)
+            return
 
         self.logging.info("Calculating...")
         response = self.producer_class.reduce_fn(
@@ -116,7 +117,8 @@ def run(options):
     fp, pathname, description = imp.find_module(module_name, [path])
     try:
         module = imp.load_module(options.file, fp, pathname, description)
-        globals().update({options.data_source: getattr(module, options.data_source)})
+        if options.data_source:
+            globals().update({options.data_source: getattr(module, options.data_source)})
         producer = getattr(module, options.producer)
         #Run given number of workers.
         for index in range(options.workers_number):
@@ -131,6 +133,9 @@ def run(options):
 if __name__ == "__main__":
     """Example of launch:
     worker.py -f ./examples.py -s IntegrationDataSource -p IntegrationProducer -q 127.0.0.1 -w 4
+
+    If you are going to send your data without using DataSource subclasses, don't point it out:
+    worker.py -f ./examples.py -p SimpleProducer -q 127.0.0.1 -w 4
     """
     options = parse_options()
     run(options)

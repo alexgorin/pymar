@@ -77,18 +77,16 @@ class Producer(object):
     def divide(self, data_source_factory):
         """Divides the task according to the number of workers."""
         data_length = data_source_factory.length()
-        data_interval_length = data_length / self.workers_number() + 1
+        data_interval_length = data_length / self.workers_number()
 
         current_index = 0
         self.responses = []
         while current_index < data_length:
             self.responses.append(0)
-            new_factory = copy.copy(data_source_factory)
-            new_factory.offset = current_index
-            interval_length = min((data_length - current_index, data_interval_length))
-            new_factory.limit = interval_length
-            yield new_factory
-            current_index += interval_length
+            offset = current_index
+            limit = min((data_length - current_index, data_interval_length))
+            yield data_source_factory.part(limit, offset)
+            current_index += limit
 
     def map(self, data_source_factory):
         """Sends tasks to workers and awaits the responses.
@@ -97,14 +95,14 @@ class Producer(object):
         for index, factory in enumerate(self.divide(data_source_factory)):
             self.unprocessed_request_num += 1
             self.logging.info("Sending %d-th message with %d elements" % (index + 1, factory.length()))
-            self.logging.info("len(data) = %d" % len(pickle.dumps(factory, protocol=2)))
+            self.logging.info("len(data) = %d" % len(pickle.dumps(factory)))
             self.channel.basic_publish(exchange='',
                                        routing_key=self.routing_key(),
                                        properties=pika.BasicProperties(
                                            reply_to=self.callback_queue,
                                            correlation_id="_".join((self.correlation_id, str(index))),
                                        ),
-                                       body=pickle.dumps(factory, protocol=0))
+                                       body=pickle.dumps(factory))
 
         self.logging.info("Waiting...")
         while self.unprocessed_request_num:

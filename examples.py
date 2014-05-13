@@ -9,7 +9,7 @@ As you can see, each example requires only several lines of code, which makes Py
 """
 
 import logging
-from pymar.datasource import DataSource, DataSourceFactory, ListDataSource, DictDataSource, SQLDataSource
+from pymar.datasource import DataSource, DataSourceFactory, SQLDataSource
 from pymar.producer import Producer
 
 
@@ -21,37 +21,33 @@ class SimpleProducer(Producer):
 
     @staticmethod
     def map_fn(data_source):
-        for key, val in data_source:
-            yield key, val**2
+        for val in data_source:
+            yield val**2
 
     @staticmethod
     def reduce_fn(data_source):
-        reduced_value = sum(val for _, val in data_source)
-        return 0, reduced_value
-
-
-class IntegrationProducer(Producer):
-    """"Producer for the task of integration of function
-    For this particular task the keys are not really needed, but you still need to process them.
-    """
-    WORKERS_NUMBER = 3
-
-    @staticmethod
-    def map_fn(data_source):
-        func, dx = data_source.func, data_source.dx
-        for key, val in data_source:
-            yield key, func(val)*dx
-
-    @staticmethod
-    def reduce_fn(data_source):
-        reduced_value = sum(val for _, val in data_source)
-        return 0, reduced_value
+        return sum(data_source)
 
 
 def func(x):
     """Function to integrate"""
     from math import exp
     return exp(x)
+
+
+class IntegrationProducer(Producer):
+    """"Producer for the task of integration of function.
+    """
+    WORKERS_NUMBER = 4
+
+    @staticmethod
+    def map_fn(data_source):
+        dx = data_source.dx
+        return (func(val)*dx for val in data_source)
+
+    @staticmethod
+    def reduce_fn(data_source):
+        return sum(data_source)
 
 
 class IntegrationDataSource(DataSource):
@@ -63,62 +59,41 @@ class IntegrationDataSource(DataSource):
     interval = (1, 10)
     dx = 0.000001
 
-    def func(self, x):
-        return func(x)
-
     @classmethod
     def full_length(cls):
         return int((cls.interval[1] - cls.interval[0]) / cls.dx)
 
     def __iter__(self):
         """Returns sequence of x values on interval"""
-        return self.add_default_keys(
-            (self.interval[0] + x*self.dx for x in range(self.offset, self.offset + self.limit))
-        )
+        return (self.interval[0] + x*self.dx for x in range(self.offset, self.offset + self.limit))
 
 
 class SimpleDataSource(DataSource):
-    """Data source for the task of sum of squares of values"""
+    """Data source for the task of sum of squares of values.
+    Values to summarize are calculated on workers, not on producer.
+    """
     N = 10**7
-
-    def __init__(self, **kwargs):
-        DataSource.__init__(self, **kwargs)
 
     @classmethod
     def full_length(cls):
         return cls.N
 
     def __iter__(self):
-        return self.add_default_keys(range(self.offset, self.offset + self.limit))
-
-
-class SimpleListSource(ListDataSource):
-    """Data source for the task of sum of squares of values.
-    Illustrates work with ListDataSource
-    """
-    data = range(10**7)
-
-
-class SimpleDictSource(DictDataSource):
-    """Data source for the task of sum of squares of values.
-    Illustrates work with DictDataSource
-    """
-    data = {
-        key: value
-        for key, value in enumerate(range(10**7))
-    }
+        return (i for i in xrange(self.offset, self.offset + self.limit))
 
 
 class SimpleSQLSource(SQLDataSource):
     """Data source for the task of sum of squares of values.
     Illustrates work with SimpleSQLSource.
-    For the task of sum of squares of values the table is supposed to be filled like:
+    For the task of sum of squares of values the table is supposed to be like:
 
     CREATE TABLE IF NOT EXISTS examples (
         id INTEGER,
         value INTEGER,
         PRIMARY KEY(id)
     );
+
+    (or some other way - only columns in COLUMNS list are mandatory (in this case - only "value" column))
 
     import sqlalchemy
     engine = sqlalchemy.create_engine(conf, echo=True)
@@ -140,14 +115,14 @@ class SimpleSQLSource(SQLDataSource):
 
     CONF = 'sqlite:///exampledb'
     TABLE = "examples"
-    KEY = "id"
-    VALUE = "value"
-
+    COLUMNS = [
+        "value",
+    ]
 
 if __name__ == "__main__":
     logging.basicConfig(logging=logging.INFO,
                             format="%(asctime)s [%(levelname)s] [%(name)s]: %(message)s")
-    logging.getLogger("").setLevel(logging.DEBUG)
+    logging.getLogger("").setLevel(logging.INFO)
 
     #Set this variable depending on what example you want to run
     #Each task below requires definition of producer and factory
@@ -163,28 +138,32 @@ if __name__ == "__main__":
     """
     if task == "integration":
         producer = IntegrationProducer()
-        factory = DataSourceFactory(data_source_class=IntegrationDataSource)
+        factory = DataSourceFactory(IntegrationDataSource)
 
 
     """
     It is for the task of sum of squares of values.
     To run, set "task" variable to "squared_sum"
     To run corresponding workers:
-    worker.py -f ./examples.py -s CLASSNAME -p SimpleProducer -q 127.0.0.1 -w 4
-    with SimpleDataSource, SimpleListSource, SimpleDictSource or SimpleSQLSource instead of CLASSNAME
+    worker.py -f ./examples.py -s SimpleSQLSource -p SimpleProducer -q 127.0.0.1 -w 4
+    for SimpleSQLSource of just
+    worker.py -f ./examples.py -p SimpleProducer -q 127.0.0.1 -w 4
+    otherwise.
     """
     if task == "squared_sum":
         producer = SimpleProducer()
-        source = "sql"     #alternatives: "data", "list", "dict" or "sql"
+        source = "list"     #alternatives: "data", "list" or "sql"
         if source == "data":
-            factory = DataSourceFactory(data_source_class=SimpleDataSource)
+            factory = DataSourceFactory(SimpleDataSource)
         elif source == "list":
-            factory = DataSourceFactory(data_source_class=SimpleListSource)
-        elif source == "dict":
-            factory = DataSourceFactory(data_source_class=SimpleDictSource)
+            #Assume that this data were formed in some long and complicated procedure
+            #which we don't want to repeat on workers, so it is easier to send data there.
+            #Otherwise, use DataSource subclasses.
+            data = range(10**7)
+            factory = DataSourceFactory(data)
         elif source == "sql":
             #Requires corresponding data base
-            factory = DataSourceFactory(data_source_class=SimpleSQLSource)
+            factory = DataSourceFactory(SimpleSQLSource)
 
     value = producer.map(factory)
-    print "Answer: ", value[1]
+    print "Answer: ", value
