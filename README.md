@@ -23,7 +23,7 @@ Using
 ----
 As a Quick Start Guide see examples.py. Everything is explained in details.
 
-For example, you need calculate integral of given function on given interval.
+For example, you need to calculate the integral of given function on given interval.
 
 ```python
 #this_example.py
@@ -35,22 +35,20 @@ def func(x):
     from math import exp
     return exp(x)
 
+
 class IntegrationProducer(Producer):
     """"Producer for the task of integration of function.
-    For this particular task the keys are not really needed, but you still need to process them.
     """
     WORKERS_NUMBER = 4
 
     @staticmethod
     def map_fn(data_source):
-        func, dx = data_source.func, data_source.dx
-        for key, val in data_source:
-            yield key, func(val)*dx
+        dx = data_source.dx
+        return (func(val)*dx for val in data_source)
 
     @staticmethod
     def reduce_fn(data_source):
-        reduced_value = sum(val for _, val in data_source)
-        return 0, reduced_value
+        return sum(data_source)
 
 class IntegrationDataSource(DataSource):
     """"Data source for the task of integration of function
@@ -61,23 +59,18 @@ class IntegrationDataSource(DataSource):
     interval = (1, 10)
     dx = 0.000001
 
-    def func(self, x):
-        return func(x)
-
     @classmethod
     def full_length(cls):
         return int((cls.interval[1] - cls.interval[0]) / cls.dx)
 
     def __iter__(self):
         """Returns sequence of x values on interval"""
-        return self.add_default_keys(
-            (self.interval[0] + x*self.dx for x in range(self.offset, self.offset + self.limit))
-        )
+        return (self.interval[0] + x*self.dx for x in range(self.offset, self.offset + self.limit))
 
 producer = IntegrationProducer()
-factory = DataSourceFactory(data_source_class=IntegrationDataSource)
+factory = DataSourceFactory(IntegrationDataSource)
 value = producer.map(factory)
-print "Answer: ", value[0]
+print "Answer: ", value
 ```
 
 Run workers using command like:
