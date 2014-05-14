@@ -20,13 +20,12 @@ setup(
     author_email='saniagorin@gmail.com',
     license='MIT',
     packages=[
-        'pymar', 'examples',
+        'pymar',
     ],
     scripts=[
         'worker.py'
     ],
     install_requires=[
           'pika',
-          'sqlalchemy'
     ]
 )

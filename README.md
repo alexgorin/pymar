@@ -7,6 +7,8 @@ Pymar is a tool for fast and easy creation of distributed map-reduce systems in 
 Its primary goals are to create very easy way to distribute your calculations in Python and
 to separate logic of your distributed programs from the way they store their data as far as possible.
 
+Tools for simplification of working with various kinds of databases will be provided as plugins. (Otherwise, there would be too many unnecessary dependencies).
+
 Version:
 -------
 0.1
@@ -16,7 +18,6 @@ Requirements:
 * Python 2.7
 * Working AMQP-server (for example, RabbitMQ)
 * pika
-* sqlalchemy
 * driver for whatever database you use (for example, psycopg for PostgreSQL). If you are not going to use databases or you are using SQLite, no driver is required.
 
 Using
