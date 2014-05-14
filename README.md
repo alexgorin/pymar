@@ -21,7 +21,7 @@ Requirements:
 
 Using
 ----
-As a Quick Start Guide see examples.py. Everything is explained in details.
+As a Quick Start Guide see /examples. Everything is explained in details.
 
 For example, you need to calculate the integral of given function on given interval.
 

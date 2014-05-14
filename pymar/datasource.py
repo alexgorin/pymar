@@ -47,27 +47,6 @@ def get_part(data, limit, offset):
         yield value
 
 
-class ObjectDataSource(DataSource):
-    """Data source based on already existing data.
-    data must be an iterable object (list, dictionary, set etc.).
-    In your class you just need to set data variable.
-    May be not suitable for large data sets, but very easy to use.
-    """
-
-    #Redefine in subclass
-    DATA = None
-
-    def __iter__(self):
-        if not self.DATA :
-            raise NotImplementedError()
-
-        return get_part(self.DATA, self.limit, self.offset)
-
-    @classmethod
-    def full_length(cls):
-        return len(cls.DATA)
-
-
 class SQLDataSource(DataSource):
     """Data source based on a table in data base.
     Your data are supposed to be in two columns of given table.

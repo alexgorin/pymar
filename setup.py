@@ -20,10 +20,10 @@ setup(
     author_email='saniagorin@gmail.com',
     license='MIT',
     packages=[
-        'pymar'
+        'pymar', 'examples',
     ],
     scripts=[
-        'examples.py', 'worker.py'
+        'worker.py'
     ],
     install_requires=[
           'pika',
