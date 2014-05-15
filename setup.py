@@ -21,6 +21,7 @@ setup(
     license='MIT',
     packages=[
         'pymar',
+        'pymar.tests'
     ],
     scripts=[
         'worker.py'
