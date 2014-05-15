@@ -33,12 +33,22 @@ class Producer(object):
 
     WORKERS_NUMBER = 10
 
-    def __init__(self, mq_server="localhost"):
+    def __init__(self, mq_server="localhost", local_mode=False):
         self.unprocessed_request_num = 0
         self.responses = []
         self.mq_server = mq_server
         self.logging = logging.getLogger(str(self.__class__.__name__))
         self.correlation_id = str(uuid.uuid4()).replace("_", "")
+        self.local_mode = local_mode
+        if not self.local_mode:
+            try:
+                self.connect(mq_server)
+            except pika.exceptions.AMQPConnectionError:
+                self.logging.warning("Cannot connect to MQ server. Working locally.")
+                self.local_mode = True
+
+    def connect(self, mq_server):
+        print "Connect"
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(
             host=mq_server))
 
@@ -77,7 +87,7 @@ class Producer(object):
     def divide(self, data_source_factory):
         """Divides the task according to the number of workers."""
         data_length = data_source_factory.length()
-        data_interval_length = data_length / self.workers_number()
+        data_interval_length = data_length / self.workers_number() + 1
 
         current_index = 0
         self.responses = []
@@ -92,6 +102,11 @@ class Producer(object):
         """Sends tasks to workers and awaits the responses.
         When all the responses are received, reduces them and returns the result.
         """
+        if self.local_mode:
+            return self.reduce_fn(
+                        self.map_fn(data_source_factory.build_data_source())
+                    )
+
         for index, factory in enumerate(self.divide(data_source_factory)):
             self.unprocessed_request_num += 1
             self.logging.info("Sending %d-th message with %d elements" % (index + 1, factory.length()))
