@@ -1,6 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import unittest
 from pika.exceptions import AMQPConnectionError
 
+from utils import ProducerMockConnection as MockConnection, ProducerMockChannel as MockChannel
 from pymar.producer import Producer
 
 
@@ -24,20 +28,6 @@ class MockFactory():
 
 def params(factories):
     return [factory.params() for factory in factories]
-
-
-class MockChannel:
-    def __init__(self, producer):
-        self.producer = producer
-
-    def basic_publish(self, **kwargs):
-        #Looks as if the request returns immediately without changes.
-        self.producer.on_response(None, None, kwargs["properties"], kwargs["body"])
-
-
-class MockConnection:
-    def __init__(self, producer):
-        self.producer = producer
 
 
 def fake_connect(self, mq_server):

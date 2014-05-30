@@ -101,4 +101,5 @@ class DataSourceFactory(object):
 
         if self.data_source_class:
             return self.data_source_class(limit=self.limit, offset=self.offset)
+
         raise NotImplementedError()
