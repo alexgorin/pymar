@@ -17,7 +17,7 @@ class Worker(object):
     When it receives a message, it creates a data source using the factory, executes map_fn and reduce_fn
     of producer_class on the data and sends response with the result.
 
-    Be careful: in the current version workers removes all messages in the queue on connect,
+    Be careful: in the current version workers remove all messages in the queue on connect,
     to avoid repeating errors. So you cannot add new workers when the task is already being executed!
     It will be corrected in the future.
     """
@@ -56,7 +56,7 @@ class Worker(object):
                         self.producer_class.map_fn(data_source)
                     )
 
-        self.logging.info("...done. ")
+        self.logging.info("Calculating finished. ")
         ch.basic_publish(exchange='',
                          routing_key=props.reply_to,
                          properties=pika.BasicProperties(correlation_id=\
@@ -108,7 +108,7 @@ def run(options):
         logging.getLogger("").setLevel(logging.INFO)
     else:
         logging.basicConfig(logging=logging.INFO,
-                            format="[%(levelname)s] %(message)s")
+                            format="[%(levelname)s] [%(name)s] %(message)s")
         logging.getLogger("").setLevel(logging.CRITICAL)
 
     #Dynamically load the file with the descriptions of producer and data source.

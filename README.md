@@ -16,9 +16,9 @@ Version:
 Requirements:
 -------------
 * Python 2.7
-* Working AMQP-server (for example, RabbitMQ)
 * pika
-* driver for whatever database you use (for example, psycopg for PostgreSQL). If you are not going to use databases or you are using SQLite, no driver is required.
+* Working AMQP-server (for example, RabbitMQ)
+
 
 Using
 ----
