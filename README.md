@@ -7,6 +7,10 @@ Pymar is a tool for fast and easy creation of distributed map-reduce systems in 
 Its primary goals are to create very easy way to distribute your calculations in Python and
 to separate logic of your distributed programs from the way they store their data as far as possible.
 
+Works effectively even if your data are represented an lists instead of key-value pairs.
+
+Does not require special files with functions map and reduce, so may be easily used without significant changes in the architecture of the existing code.
+
 Tools for simplification of working with various kinds of databases will be provided as plugins. (Otherwise, there would be too many unnecessary dependencies).
 
 Version:
@@ -16,8 +20,8 @@ Version:
 Requirements:
 -------------
 * Python 2.7
-* pika
-* Working AMQP-server (for example, RabbitMQ)
+* [pika](https://pypi.python.org/pypi/pika)
+* Working AMQP-server (for example, [RabbitMQ](http://www.rabbitmq.com/))
 
 
 Using
@@ -85,3 +89,5 @@ python this_example.py
 ```
 
 Thus, there is only trivial code without much knowing about distribution.
+
+If you want a canonical example with word counting, you can find in [PymarMongo](https://github.com/alexgorin/PymarMongo) addition.
