@@ -4,10 +4,12 @@ Pymar
 
 Pymar is a tool for fast and easy creation of distributed map-reduce systems in Python.
 
-Its primary goals are to create very easy way to distribute your calculations in Python and
-to separate logic of your distributed programs from the way they store their data as far as possible.
+Its primary goals are:
+* to create very easy way to scale your calculations in Python
+* to minimize data transmission between producer and workers
+* to separate logic of your distributed programs from the way they store their data as far as possible.
 
-Works effectively even if your data are represented an lists instead of key-value pairs.
+Works effectively even if your data are represented as lists instead of key-value pairs, which is usually the case in mathematical tasks.
 
 Does not require special files with functions map and reduce, so may be easily used without significant changes in the architecture of the existing code.
 
@@ -82,6 +84,7 @@ Run workers using command like:
 ```
 worker.py -f ./this_example.py -s IntegrationDataSource -p IntegrationProducer -q 127.0.0.1 -w 4
 ```
+(4 workers in this case)
 
 And run your script.
 ```
@@ -90,4 +93,4 @@ python this_example.py
 
 Thus, there is only trivial code without much knowing about distribution.
 
-If you want a canonical example with word counting, you can find in [PymarMongo](https://github.com/alexgorin/PymarMongo) addition.
+If you want a canonical example with word counting, you can find it in [PymarMongo](https://github.com/alexgorin/PymarMongo) addition.
