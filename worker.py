@@ -17,11 +17,10 @@ class Worker(object):
     When it receives a message, it creates a data source using the factory, executes map_fn and reduce_fn
     of producer_class on the data and sends response with the result.
 
-    Be careful: in the current version workers remove all messages in the queue on connect,
-    to avoid repeating errors. So you cannot add new workers when the task is already being executed!
-    It will be corrected in the future.
+    If purge_queue is set to True, workers will remove all messages in the queue on connect,
+    to avoid repeating errors.
     """
-    def __init__(self, producer_class, index, mq_server="localhost"):
+    def __init__(self, producer_class, index, mq_server="localhost", purge_queue=False):
         self.producer_class = producer_class
         self.logging = logging.getLogger("Worker %d for %s" % (index, producer_class.__name__))
 
@@ -30,7 +29,9 @@ class Worker(object):
             host=mq_server))
         channel = connection.channel()
         channel.queue_declare(queue=self.producer_class.routing_key())
-        channel.queue_purge(queue=self.producer_class.routing_key()) #TODO: set up some condition
+        if purge_queue:
+            channel.queue_purge(queue=self.producer_class.routing_key())
+
         channel.basic_qos(prefetch_count=1)
         channel.basic_consume(self.on_request, queue=self.producer_class.routing_key())
         self.channel = channel
@@ -80,9 +81,6 @@ def parse_options():
     option_parser.add_option("-p", "--producer", dest="producer",
                              help="Name of class with functions Map and Reduce")
 
-    #option_parser.add_option("-f", "--file", dest="file",
-    #                         help="Name of the file with producer and data source")
-
     option_parser.add_option("-q", "--mq_server", dest="mq_server", default="localhost",
                              help="Address of MQ-server")
 
@@ -91,6 +89,9 @@ def parse_options():
 
     option_parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False,
                              help="Show logs of info level.'")
+
+    option_parser.add_option("-r", "--purge_queue", action="store_true", dest="purge_queue", default=False,
+                    help="Remove all existing messages in the corresponding queue. May be useful to correct errors.'")
 
     (options, args) = option_parser.parse_args()
 
@@ -107,8 +108,8 @@ def parse_options():
     return options
 
 
-def run_process(index, producer, mq_server):
-    worker = Worker(producer, index, mq_server=mq_server)
+def run_process(index, producer, mq_server, purge_queue):
+    worker = Worker(producer, index, mq_server=mq_server, purge_queue=purge_queue)
     worker.listen()
 
 
@@ -133,7 +134,7 @@ def run(options):
         producer = getattr(module, options.producer)
         #Run given number of workers.
         for index in range(options.workers_number):
-            mp.Process(target=run_process, args=(index, producer, options.mq_server)).start()
+            mp.Process(target=run_process, args=(index, producer, options.mq_server, options.purge_queue)).start()
 
         logging.getLogger("").info("%d workers running." % options.workers_number)
     finally:

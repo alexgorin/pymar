@@ -107,7 +107,7 @@ Run workers using command like:
 ```
 worker.py ./this_example.py -s IntegrationDataSource -p IntegrationProducer -q 127.0.0.1 -w 4
 ```
-(4 workers in this case)
+4 workers are created in this case. You may add new workers whenever you want, even if your producer is already running.
 
 And run your script.
 ```
