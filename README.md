@@ -4,7 +4,7 @@ Pymar
 
 Pymar is a tool for fast and easy scaling your calculations in Python.
 
-Although it user terms "map" and "reduce", it is NOT an exact implementation of map-reduce.
+Although it uses terms "map" and "reduce", it is NOT an exact implementation of map-reduce.
 
 Its primary goals are:
 * to create very easy way to scale your calculations in Python
