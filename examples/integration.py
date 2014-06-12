@@ -43,7 +43,7 @@ class IntegrationDataSource(DataSource):
     interval = (1, 10)
 
     #Step of integration
-    dx = 0.000001
+    dx = 0.00001
 
     @classmethod
     def full_length(cls):

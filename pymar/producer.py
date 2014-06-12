@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import copy
 import cPickle as pickle
 import logging
 import pika
 import uuid
+
+from threading import Timer
+
+from pymar.exceptions import TimeOutException
 
 logging.basicConfig(logging=logging.DEBUG,
                             format="%(asctime)s [%(levelname)s] [%(name)s]: %(message)s")
@@ -48,7 +51,6 @@ class Producer(object):
                 self.local_mode = True
 
     def connect(self, mq_server):
-        print "Connect"
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(
             host=mq_server))
 
@@ -98,14 +100,22 @@ class Producer(object):
             yield data_source_factory.part(limit, offset)
             current_index += limit
 
-    def map(self, data_source_factory):
+    def map(self, data_source_factory, timeout=0, on_timeout="local_mode"):
         """Sends tasks to workers and awaits the responses.
         When all the responses are received, reduces them and returns the result.
+
+        If timeout is set greater than 0, producer will quit waiting for workers when time has passed.
+        If on_timeout is set to "local_mode", after the time limit producer will run tasks locally.
+        If on_timeout is set to "fail", after the time limit producer raise TimeOutException.
         """
-        if self.local_mode:
+        def local_launch():
+            print "Local launch"
             return self.reduce_fn(
                         self.map_fn(data_source_factory.build_data_source())
                     )
+
+        if self.local_mode:
+            return local_launch()
 
         for index, factory in enumerate(self.divide(data_source_factory)):
             self.unprocessed_request_num += 1
@@ -120,7 +130,26 @@ class Producer(object):
                                        body=pickle.dumps(factory))
 
         self.logging.info("Waiting...")
+
+        time_limit_exceeded = [False]
+
+        def on_timeout_func():
+            print "Timeout!!"
+            self.logging.warning("Timeout!")
+            time_limit_exceeded[0] = True
+
+        if timeout > 0:
+            self.timer = Timer(timeout, on_timeout_func)
+            self.timer.start()
+
         while self.unprocessed_request_num:
+            if time_limit_exceeded[0]:
+                if on_timeout == "local_mode":
+                    return local_launch()
+
+                assert on_timeout == "fail", "Invalid value for on_timeout: %s" % on_timeout
+                raise TimeOutException()
+
             self.connection.process_data_events()
 
         self.logging.info("Responses: %s" % str(self.responses))

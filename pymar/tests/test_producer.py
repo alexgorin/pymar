@@ -4,7 +4,7 @@
 import unittest
 from pika.exceptions import AMQPConnectionError
 
-from utils import ProducerMockConnection as MockConnection, ProducerMockChannel as MockChannel
+from utils import ProducerMockConnection, ProducerMockChannel
 from pymar.producer import Producer
 
 
@@ -31,8 +31,8 @@ def params(factories):
 
 
 def fake_connect(self, mq_server):
-    self.connection = MockConnection(self)
-    self.channel = MockChannel(self)
+    self.connection = ProducerMockConnection(self)
+    self.channel = ProducerMockChannel(self)
     self.callback_queue = "queue_name"
 
 
@@ -77,5 +77,3 @@ class TestProducer(unittest.TestCase):
         Producer.reduce_fn = lambda cls, data : sum(data)
         producer = Producer()
         self.assertEqual(producer.map(MockFactory(10)), 2*sum(range(10)))
-
-
