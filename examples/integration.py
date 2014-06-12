@@ -56,7 +56,7 @@ class IntegrationDataSource(DataSource):
 if __name__ == "__main__":
     """
     Before starting this script launch corresponding workers:
-    worker.py -f ./examples/integration.py -s IntegrationDataSource -p IntegrationProducer -q 127.0.0.1 -w 4
+    worker.py ./examples/integration.py -s IntegrationDataSource -p IntegrationProducer -q 127.0.0.1 -w 4
     """
     producer = IntegrationProducer()
     factory = DataSourceFactory(IntegrationDataSource)

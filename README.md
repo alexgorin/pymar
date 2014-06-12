@@ -105,7 +105,7 @@ print "Answer: ", value
 
 Run workers using command like:
 ```
-worker.py -f ./this_example.py -s IntegrationDataSource -p IntegrationProducer -q 127.0.0.1 -w 4
+worker.py ./this_example.py -s IntegrationDataSource -p IntegrationProducer -q 127.0.0.1 -w 4
 ```
 (4 workers in this case)
 

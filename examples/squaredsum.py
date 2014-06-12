@@ -44,7 +44,7 @@ class SimpleDataSource(DataSource):
 if __name__ == "__main__":
     """
     Before starting this script launch corresponding workers:
-    worker.py -f ./examples/squaredsum.py -s SimpleDataSource -p SimpleProducer -q 127.0.0.1 -w 4
+    worker.py  ./examples/squaredsum.py -s SimpleDataSource -p SimpleProducer -q 127.0.0.1 -w 4
     """
 
     producer = SimpleProducer()

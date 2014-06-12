@@ -73,15 +73,15 @@ class Worker(object):
 
 def parse_options():
     from optparse import OptionParser
-    option_parser = OptionParser()
+    option_parser = OptionParser(usage="%prog FILENAME [options]")
     option_parser.add_option("-s", "--data_source", dest="data_source",
                              help="Name of class of data source")
 
     option_parser.add_option("-p", "--producer", dest="producer",
                              help="Name of class with functions Map and Reduce")
 
-    option_parser.add_option("-f", "--file", dest="file",
-                             help="Name of the file with producer and data source")
+    #option_parser.add_option("-f", "--file", dest="file",
+    #                         help="Name of the file with producer and data source")
 
     option_parser.add_option("-q", "--mq_server", dest="mq_server", default="localhost",
                              help="Address of MQ-server")
@@ -93,6 +93,17 @@ def parse_options():
                              help="Show logs of info level.'")
 
     (options, args) = option_parser.parse_args()
+
+    if len(args) != 1:
+        option_parser.error("Invalid usage")
+
+    if not options.producer:
+        option_parser.error("Name of class of producer is not specified.")
+
+    if not options.workers_number:
+        option_parser.error("Number of workers is not specified.")
+
+    options.file = args[0]
     return options
 
 
@@ -132,10 +143,10 @@ def run(options):
 
 if __name__ == "__main__":
     """Example of launch:
-    worker.py -f ./examples.py -s IntegrationDataSource -p IntegrationProducer -q 127.0.0.1 -w 4
+    worker.py ./examples.py -s IntegrationDataSource -p IntegrationProducer -q 127.0.0.1 -w 4
 
-    If you are going to send your data without using DataSource subclasses, don't point it out:
-    worker.py -f ./examples.py -p SimpleProducer -q 127.0.0.1 -w 4
+    If you are going to send your data without using DataSource subclasses, don't specify it:
+    worker.py ./examples.py -p SimpleProducer -q 127.0.0.1 -w 4
     """
     options = parse_options()
     run(options)

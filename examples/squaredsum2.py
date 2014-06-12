@@ -28,7 +28,7 @@ class SimpleProducer(Producer):
 if __name__ == "__main__":
     """
     Before starting this script launch corresponding workers:
-    worker.py -f ./examples/squaredsum2.py -p SimpleProducer -q 127.0.0.1 -w 4
+    worker.py ./examples/squaredsum2.py -p SimpleProducer -q 127.0.0.1 -w 4
     """
 
     #Assume that this data were formed in some long and complicated procedure
