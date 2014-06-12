@@ -15,7 +15,7 @@ setup(
     name='pymar',
     version="0.1",
     description="Tool for distributed computing with python",
-    url="",
+    url="https://github.com/alexgorin/pymar",
     author="Alexander Gorin",
     author_email='saniagorin@gmail.com',
     license='MIT',
@@ -28,5 +28,8 @@ setup(
     ],
     install_requires=[
           'pika',
+    ],
+    keywords=[
+        'python', 'scale', 'distribute', 'map', 'reduce', 'mongo'
     ]
 )
