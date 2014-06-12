@@ -13,7 +13,7 @@ from distutils.core import setup
 
 setup(
     name='pymar',
-    version="0.1",
+    version="0.1.1",
     description="Tool for distributed computing with python",
     url="https://github.com/alexgorin/pymar",
     author="Alexander Gorin",
