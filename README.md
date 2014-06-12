@@ -29,6 +29,11 @@ Requirements:
 Using
 ----
 
+To install:
+```
+pip install pymar
+```
+
 For example, you need to calculate the integral of given function on given interval.
 
 ```python
